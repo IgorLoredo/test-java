@@ -1,0 +1,10 @@
+Sobre o diagnóstico e melhoria de performance de um processo batch que interage com banco de dados e FTP, eu sigo uma abordagem prática em etapas, sempre tentando entender onde tá o gargalo primeiro, antes de sair otimizando tudo na pressa (porque às vezes o problema tá num ponto bem específico e simples de resolver).
+
+O primeiro passo que eu dou é monitorar o tempo que cada etapa do processo leva. Gosto de colocar logs com timestamp marcando o início e o fim de partes como: leitura de dados do banco, processamento da lógica, escrita em arquivos, e envio via FTP. Isso já dá uma ideia clara de onde o tempo tá sendo mais consumido.
+
+Se eu perceber que o problema tá no banco de dados, eu costumo olhar as queries que estão sendo executadas. Uso ferramentas como o EXPLAIN (no MySQL ou PostgreSQL) pra entender se tá usando índice certo, se tá fazendo scan desnecessário, ou se posso melhorar com JOIN mais eficiente. Também já tive casos em que só de fazer um LIMIT ou quebrar uma query grande em blocos menores, a performance melhorou bastante.
+
+Se o problema estiver no código Java mesmo (ou na lógica), eu vejo se o batch não tá fazendo laços desnecessários, acessando o banco repetidamente quando podia usar cache em memória, ou processando dados de forma sequencial quando poderia paralelizar. Já melhorei bastante um processo só usando ExecutorService com threads, dividindo arquivos em partes menores.
+
+
+
