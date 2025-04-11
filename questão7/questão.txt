@@ -1,0 +1,69 @@
+1. User story / caso de uso
+Como administrador do sistema XYZ, eu quero poder cadastrar, editar, excluir e buscar registros de plantas, para que o sistema tenha esses dados preparados para a próxima fase do projeto.
+
+Um exemplo de uso seria: um usuário administrador acessa o sistema, vai até a tela de “Cadastro de Plantas”, preenche o código (ex: 1001) e a descrição (ex: "Fertilizante"), e salva. Depois, esse registro pode ser atualizado ou excluído — mas só se for um admin. Um usuário normal, por exemplo, poderia consultar os dados, mas não teria permissão pra apagar.
+
+2. Regras de negócio e suposições
+O campo code da planta é obrigatório, somente numérico e não pode se repetir.
+
+A description é opcional, mas se for preenchida, deve ter no máximo 10 caracteres.
+
+Somente usuários com perfil de admin podem excluir uma planta.
+
+Assumo que a tela tenha algum tipo de filtro/pesquisa pra localizar rapidamente por código ou descrição.
+
+O sistema já tem algum tipo de controle de usuário com perfil/role, pra diferenciar admin de comum.
+
+
+
+3. Validações e segurança que eu implementaria
+Validação do campo code: verificar se é numérico, não nulo e único. Isso pode ser feito tanto no frontend (pra dar feedback rápido) quanto no backend (pra garantir segurança).
+
+Validação da description: limitar pra 10 caracteres e permitir apenas letras e números.
+
+Verificação de permissão na hora de excluir: se o usuário logado não for admin, o backend deve rejeitar a operação com erro 403 (forbidden).
+
+Também implementaria tratamento de erro amigável, tipo: "Código da planta já existe no sistema", pra ajudar o usuário.
+
+E pra segurança extra, colocaria validação nos endpoints do backend pra garantir que os dados recebidos estão realmente limpos (evitando SQL injection, etc).
+
+4. Como eu testaria isso + edge cases
+Eu criaria testes automatizados cobrindo as seguintes situações:
+
+Fluxos normais:
+
+Criar planta com código único e descrição válida.
+
+Editar uma planta existente.
+
+Excluir planta como admin.
+
+Buscar planta por código ou parte da descrição.
+
+Casos de erro / edge cases:
+
+Tentar criar planta com código vazio ou com letras (esperado: erro de validação).
+
+Tentar cadastrar código repetido (esperado: erro dizendo que já existe).
+
+Informar descrição com mais de 10 caracteres (esperado: erro).
+
+Tentar excluir como usuário comum (esperado: acesso negado).
+
+Criar planta sem descrição (esperado: sucesso, pois é opcional).
+
+Um exemplo de teste automatizado (em pseudocódigo) seria:
+@Test
+public void naoDevePermitirCodigoRepetido() {
+    Plant p1 = new Plant(1001, "Teste");
+    Plant p2 = new Plant(1001, "Outro");
+
+    plantService.salvar(p1);
+    
+    assertThrows(ValidacaoException.class, () -> {
+        plantService.salvar(p2);
+    });
+}
+
+
+No geral, minha ideia é garantir que tudo funcione de forma clara pro usuário, mas com regras bem validadas no backend, e um sistema que aguente crescer na fase 2 do projeto sem precisar refatorar tudo

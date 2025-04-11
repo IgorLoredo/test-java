@@ -1,0 +1,52 @@
+Bom, pra resolver essas queries com base nas tabelas apresentadas, eu comecei tentando entender bem as relações entre elas. As tabelas envolvidas são Salesperson, Customer, e Orders, e elas se ligam pelos campos de ID — então dá pra trabalhar bem com JOIN e subqueries.
+
+a) Salesperson que não tem nenhum pedido com a empresa "Samsonic":
+Aqui a ideia é pegar todos os vendedores que não fizeram pedidos para esse cliente específico. Eu usei um NOT IN com subquery:
+
+
+SELECT Name
+FROM Salesperson
+WHERE ID NOT IN (
+  SELECT o.salesperson_id
+  FROM Orders o
+  JOIN Customer c ON o.customer_id = c.ID
+  WHERE c.Name = 'Samsonic'
+);
+Esse NOT IN garante que a gente exclui os vendedores que já fizeram pedidos para a Samsonic.
+
+b) Atualizar nomes de vendedores com 2 ou mais pedidos, adicionando * no final do nome:
+Aqui usei UPDATE com GROUP BY + HAVING, fazendo um IN com subquery:
+
+
+UPDATE Salesperson
+SET Name = CONCAT(Name, '*')
+WHERE ID IN (
+  SELECT salesperson_id
+  FROM Orders
+  GROUP BY salesperson_id
+  HAVING COUNT(*) >= 2
+);
+Isso aqui garante que só os vendedores com 2 ou mais registros na tabela Orders sejam alterados.
+
+c) Deletar vendedores que fizeram pedidos para clientes da cidade "Jackson":
+Pra isso eu usei DELETE com uma subquery que junta as 3 tabelas:
+
+
+DELETE FROM Salesperson
+WHERE ID IN (
+  SELECT DISTINCT o.salesperson_id
+  FROM Orders o
+  JOIN Customer c ON o.customer_id = c.ID
+  WHERE c.City = 'Jackson'
+);
+Aqui o DISTINCT é só pra garantir que não vai tentar deletar duplicado (não que SQL ligue muito, mas por boa prática).
+
+d) Total de vendas por vendedor, incluindo quem nunca vendeu nada (mostrando zero):
+Aqui é legal usar LEFT JOIN, porque queremos mostrar todos os vendedores, inclusive os que não aparecem na tabela de Orders.
+
+
+SELECT s.Name, COALESCE(SUM(o.Amount), 0) AS TotalSales
+FROM Salesperson s
+LEFT JOIN Orders o ON s.ID = o.salesperson_id
+GROUP BY s.Name;
+Usei COALESCE pra trocar NULL por 0, pra aqueles vendedores que não têm vendas.

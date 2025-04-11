@@ -1,0 +1,55 @@
+Sobre esse sistema de cadastro de usuários, eu aplicaria uma combinação de testes unitários, integração e também alguns end-to-end (E2E) pra garantir que tudo esteja funcionando certinho, tanto no backend quanto no fluxo completo com o frontend.
+
+1. Tipos de testes e cenários:
+Testes unitários: aqui eu testaria as regras de negócio isoladas. Por exemplo:
+
+Verificar se nome e email são obrigatórios.
+
+Testar se está validando o formato do email corretamente.
+
+Garantir que o sistema não deixa criar dois usuários com o mesmo email.
+
+Testes de integração: eu usaria pra testar a comunicação entre os componentes, como:
+
+Ver se a API de criação está salvando no banco corretamente.
+
+Checar se a validação de permissão está funcionando (por exemplo, se um usuário normal tentar deletar outro e o sistema bloqueia).
+
+Testes end-to-end (E2E): esses seriam mais no estilo "simulando o usuário", tipo:
+
+Preencher o formulário de cadastro e verificar se o usuário aparece na listagem.
+
+Tentar deletar como admin e como usuário comum e ver o comportamento.
+
+2. Edge cases que eu testaria:
+Tentar cadastrar um usuário sem nome ou sem email (espera-se erro).
+
+Inserir um email já existente no sistema (espera-se erro de unicidade).
+
+Email mal formatado, tipo "teste@@gmail.com" ou "user@" (erro de validação).
+
+Campos com espaços em branco ou só com espaços.
+
+Tentar deletar outro usuário sem ser admin (espera-se negação).
+
+Tentar atualizar o e-mail e mudar pra um já existente de outro usuário (também erro).
+
+Esses casos geralmente são os que quebram o sistema se não forem tratados direito, por isso gosto de garantir que estão cobertos.
+
+
+3. Exemplo de teste (em pseudocódigo):
+@Test
+public void naoDevePermitirCriarUsuarioSemEmail() {
+    Usuario usuario = new Usuario();
+    usuario.setNome("Carlos");
+    usuario.setEmail(null);
+
+    Exception exception = assertThrows(ValidacaoException.class, () -> {
+        usuarioService.cadastrar(usuario);
+    });
+
+    assertEquals("Email é obrigatório", exception.getMessage());
+}
+Esse teste é bem simples, mas cobre uma regra importante. Também escreveria um semelhante pra garantir que o sistema só deixa deletar usuário se for admin, e que o e-mail realmente tem que ser único.
+
+No geral, sempre tento cobrir bem os fluxos positivos e negativos, além dos casos extremos. Gosto de pensar que um bom teste não é só pra provar que o sistema funciona, mas principalmente pra provar que ele não falha quando alguém usa do jeito errado
