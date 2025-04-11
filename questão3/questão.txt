@@ -1,0 +1,52 @@
+a) 
+Aqui a ideia é pegar os vendedores que nunca venderam nada pro cliente chamado Samsonic. Então usei NOT IN com uma subquery pra isolar os IDs que já venderam pra ele:
+
+SELECT Name
+FROM Salesperson
+WHERE ID NOT IN (
+  SELECT o.salesperson_id
+  FROM Orders o
+  JOIN Customer c ON o.customer_id = c.ID
+  WHERE c.Name = 'Samsonic'
+);
+Esse tipo de consulta é útil pra fazer campanhas, por exemplo: "mostrar vendedores que nunca atenderam cliente X".
+
+
+
+b) 
+Aqui é legal usar UPDATE com subquery. Já vi algo assim em projeto real, quando queriam marcar vendedores mais ativos visualmente.
+UPDATE Salesperson
+SET Name = CONCAT(Name, '*')
+WHERE ID IN (
+  SELECT salesperson_id
+  FROM Orders
+  GROUP BY salesperson_id
+  HAVING COUNT(*) >= 2
+);
+
+Simples e direto. Adiciona o * no final do nome só se o vendedor tiver dois ou mais pedidos.
+
+
+c) 
+Nesse aqui é só juntar Orders, Customer e Salesperson e filtrar pela cidade:
+
+DELETE FROM Salesperson
+WHERE ID IN (
+  SELECT DISTINCT o.salesperson_id
+  FROM Orders o
+  JOIN Customer c ON o.customer_id = c.ID
+  WHERE c.City = 'Jackson'
+);
+
+Usei DISTINCT só por segurança mesmo, pra garantir que não repita o mesmo ID.
+
+d) 
+Essa query é legal porque muita gente esquece de mostrar quem vendeu zero. O segredo aqui é usar LEFT JOIN e COALESCE:
+SELECT s.Name, COALESCE(SUM(o.Amount), 0) AS TotalSales
+FROM Salesperson s
+LEFT JOIN Orders o ON s.ID = o.salesperson_id
+GROUP BY s.Name;
+
+
+Dessa forma, todo vendedor aparece, mesmo que não tenha feito nenhuma venda — e aparece com 0 em vez de NULL.
+Todas essas queries são simples, mas eficazes, e cobrem bem as situações. Em sistemas reais, claro, a gente sempre adiciona cláusulas extras tipo WHERE ativo = 1, ou AND data > '2020-01-01', mas aqui a ideia era resolver de forma objetiva. Eu tento sempre manter a clareza no SQL pra facilitar manutenção depois, principalmente se outras pessoas forem mexer.

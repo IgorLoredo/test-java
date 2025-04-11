@@ -1,0 +1,30 @@
+Para evitar ataques de SQL injection em aplicações web, eu sempre tento 
+seguir algumas práticas bem claras. A principal delas é nunca montar query concatenando strings com dados vindos do usuário. 
+Sempre que eu trabalho com JDBC puro, por exemplo, eu uso PreparedStatement,
+ que permite fazer consultas com parâmetros já protegidos contra injeção.
+
+Um exemplo simples seria assim:
+
+String sql = "SELECT * FROM usuarios WHERE email = ?";
+PreparedStatement stmt = conexao.prepareStatement(sql);
+stmt.setString(1, email);
+ResultSet rs = stmt.executeQuery();
+
+
+
+Dessa forma, mesmo que alguém tente passar algo como ' OR 1=1 --, o banco vai tratar isso como um valor de parâmetro, não como parte da query.​
+Acunetix
+
+Além disso, uso ORMs como Hibernate, que já abstraem bastante coisa e ajudam a evitar esse tipo de vulnerabilidade.​
+
+Também tomo outras precauções, como:
+
+Validar e sanitizar entradas de usuários.​
+
+Restringir os privilégios do usuário do banco de dados que a aplicação utiliza.​
+
+Evitar exibir mensagens de erro detalhadas para o usuário final.​
+
+Manter o banco de dados e a aplicação sempre atualizados com os últimos patches de segurança.​
+
+Essas práticas ajudam a manter a aplicação mais segura contra ataques de SQL Injection.

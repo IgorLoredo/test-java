@@ -1,0 +1,32 @@
+Em muitos sistemas, utilizamos bibliotecas de terceiros para resolver funcionalidades específicas, como envio de e-mails, geração de PDF, comunicação com APIs externas, entre outras. No entanto, acoplar diretamente o nosso código a essas bibliotecas pode gerar problemas no futuro: e se precisarmos trocar essa biblioteca por outra? Ou se quisermos testá-lo de forma isolada, sem depender do funcionamento da lib?
+
+Para resolver esse tipo de problema, uma abordagem elegante e recomendada é utilizar o padrão de projeto Adapter, aliado ao princípio da Inversão de Dependência. A ideia é bem simples: em vez de nosso sistema conhecer diretamente a biblioteca externa, nós definimos uma interface que representa a funcionalidade desejada (por exemplo, um serviço de envio de e-mails). A biblioteca é usada apenas dentro de uma implementação dessa interface, chamada de adaptador.
+
+Por exemplo, imagine que queremos enviar um e-mail. Criamos a interface EmailService, com um método sendEmail(String to, String subject, String body). A partir disso, implementamos essa interface em uma classe chamada MailAdapter, que usa internamente uma biblioteca como ThirdPartyMailer para realmente enviar o e-mail. Dessa forma, nosso sistema nunca depende da biblioteca em si, apenas da interface. Se um dia precisarmos trocar a biblioteca, criamos uma nova classe que também implementa EmailService, sem alterar o resto do sistema.
+
+Essa abordagem traz diversas vantagens: o sistema fica mais modular, fácil de testar (já que podemos usar mocks da interface), e preparado para mudanças futuras sem grandes reestruturações. Como ponto de atenção, ela exige um cuidado inicial no design e adiciona um pequeno overhead de código (interfaces e adaptadores), mas isso é rapidamente compensado pela flexibilidade conquistada.
+
+Um exemplo prático e direto:
+
+// Interface de uso interno
+public interface EmailService {
+    void sendEmail(String to, String subject, String body);
+}
+
+// Biblioteca externa (simulada)
+class ThirdPartyMailer {
+    public void send(String to, String subject, String msg) {
+        System.out.println("Enviando e-mail via lib externa...");
+    }
+}
+
+// Adaptador para a biblioteca
+public class MailAdapter implements EmailService {
+    private ThirdPartyMailer mailer = new ThirdPartyMailer();
+
+    public void sendEmail(String to, String subject, String body) {
+        mailer.send(to, subject, body);
+    }
+}
+No código acima, qualquer classe que queira enviar e-mails deve depender apenas da interface EmailService. Assim, todo o sistema fica desacoplado da biblioteca externa, e pronto para evoluir com mais segurança e menor impacto.
+
